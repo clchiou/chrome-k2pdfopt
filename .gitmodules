@@ -1,0 +1,27 @@
+[submodule "freetype2"]
+	path = freetype2
+	url = git@github.com:clchiou/freetype2.git
+[submodule "jbig2dec"]
+	path = jbig2dec
+	url = git@github.com:clchiou/jbig2dec.git
+[submodule "jpeg"]
+	path = jpeg
+	url = git@github.com:clchiou/jpeg.git
+[submodule "k2pdfopt"]
+	path = k2pdfopt
+	url = git@github.com:clchiou/k2pdfopt.git
+[submodule "leptonica"]
+	path = leptonica
+	url = git@github.com:clchiou/leptonica.git
+[submodule "libpng"]
+	path = libpng
+	url = git@github.com:clchiou/libpng.git
+[submodule "mupdf"]
+	path = mupdf
+	url = git@github.com:clchiou/mupdf.git
+[submodule "tesseract-ocr"]
+	path = tesseract-ocr
+	url = git@github.com:clchiou/tesseract-ocr.git
+[submodule "zlib"]
+	path = zlib
+	url = git@github.com:clchiou/zlib.git
