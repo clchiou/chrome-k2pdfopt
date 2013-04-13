@@ -74,4 +74,4 @@ gtest:		$(SENTINELS)/libraries/gtest
 nacl-mounts:	$(SENTINELS)/libraries/nacl-mounts
 
 .PHONY: freetype2 jbig2dec jpeg k2pdfopt leptonica libpng mupdf openjpeg \
-	tesseract zlib glibc nacl-mounts
+	tesseract-ocr zlib glibc nacl-mounts
