@@ -8,6 +8,11 @@ set -o errexit
 
 source ${NACLPORTS_ROOT}/src/build_tools/common.sh
 
+# TODO(clchiou): There are *LOTS* of mysterious build errors when building
+# dynamic objects that are not worth fixing.  So just build static objects
+# until NaCl is mature and stable.
+export LDFLAGS="${LDFLAGS} -static"
+
 FixupOfCFLAGS() {
   # I think we should use -isysroot to point to ${NACLPORTS_INCLUDE} rather
   # than set -I to point to it because when a conflicting version of headers
