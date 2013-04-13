@@ -46,6 +46,8 @@ $(SENTINELS)/chrome-k2pdfopt/leptonica-1.69: \
 	$(SENTINELS)/chrome-k2pdfopt/jpeg-9 \
 	$(SENTINELS)/libraries/glibc-compat \
 	$(SENTINELS)/libraries/nacl-mounts
+$(SENTINELS)/chrome-k2pdfopt/tesseract-ocr-3.02.02: \
+	$(SENTINELS)/chrome-k2pdfopt/leptonica-1.69
 $(SENTINELS)/chrome-k2pdfopt/k2pdfopt-1.64a: \
 	$(SENTINELS)/chrome-k2pdfopt/zlib-1.2.7.1 \
 	$(SENTINELS)/chrome-k2pdfopt/libpng-1.6.1 \
