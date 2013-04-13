@@ -3,21 +3,18 @@
 # as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 
-export NACL_SDK_ROOT
-export NACL_PACKAGES_BITSIZE
-export NACL_GLIBC
-export NACL_DEBUG
-
-export NACLPORTS_ROOT
-
 GETVAR := bash getvar.sh
 
 NACL_ARCH := $(shell $(GETVAR) NACL_ARCH)
 SENTINELS := $(shell $(GETVAR) SENTINELS)
 
+# XXX: MAKEFLAGS are cleared before calling nacl-${PKG}.sh because, strangely
+# enough, certain flags, -B for example, could break the build.
 BANNER    = echo "*** Building $(NACL_ARCH) $(notdir $*) ***"
-BUILD_PKG = PKG=$*; PKG=$${PKG%-*}; cd $${PKG} && ./nacl-$${PKG}.sh
-BUILD_LIB = cd $(NACLPORTS_ROOT)/src/libraries/$* && ./nacl-$(notdir $*).sh
+BUILD_PKG = export MAKEFLAGS=""; \
+	    PKG=$*; PKG=$${PKG%-*}; cd $${PKG} && ./nacl-$${PKG}.sh
+BUILD_LIB = export MAKEFLAGS=""; \
+	    cd $(NACLPORTS_ROOT)/src/libraries/$* && ./nacl-$(notdir $*).sh
 
 # TODO(clchiou): Port openjpeg
 $(SENTINELS)/chrome-k2pdfopt/openjpeg-2.0.0:

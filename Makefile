@@ -3,8 +3,12 @@
 # as published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
 
-all: k2pdfopt
+all:
+	NACL_PACKAGES_BITSIZE=32 $(MAKE) arch
+	NACL_PACKAGES_BITSIZE=64 $(MAKE) arch
 
-.PHONY: all
+arch: | k2pdfopt
+
+.PHONY: all arch
 
 include packages.mk
