@@ -1,11 +1,11 @@
 {
   "name": "Convert PDF for Kindle",
-  "version": "0.0.1",
+  "version": "${VERSION}",
   "manifest_version": 2,
-  "description": "Convert PDF for Easy Kindle Reading",
+  "description": "Convert PDF for Easy Kindle Reading.",
   "permissions": [
     "contextMenus",
-    "http://*/*", "https://*/*", "ftp://*/*"
+    "http://*/*", "https://*/*", "file://*", "ftp://*/*"
   ],
   "background": {
     "persistent": false,

@@ -29,8 +29,13 @@ LIBS	:= -lk2pdfopt -ltesseract -llept \
 K2PDFOPT_EXE = $(OUT)/k2pdfopt_$(NACL_ARCH).nexe
 
 EXTENSION_DIR = $(OUT)/extension
-MANIFEST := convert.html convert.js event_page.js jquery.js \
-	k2pdfopt.nmf manifest.json
+EXTENSION_GEN_FILES = $(EXTENSION_DIR)/manifest.json
+EXTENSION_FILES = $(addprefix $(EXTENSION_DIR)/,\
+	convert.html convert.js event_page.js jquery.js k2pdfopt.nmf)
+EXTENSION_NEXES = $(addprefix $(EXTENSION_DIR)/,\
+	k2pdfopt_x86_64.nexe k2pdfopt_i686.nexe)
+EXTENSION_MANIFEST = $(EXTENSION_GEN_FILES) $(EXTENSION_FILES) \
+	$(EXTENSION_NEXES)
 
 all:
 	NACL_PACKAGES_BITSIZE=32 $(MAKE) arch
@@ -39,15 +44,21 @@ all:
 
 arch: $(K2PDFOPT_EXE) | k2pdfopt
 
-pack: | $(EXTENSION_DIR)
-	cp -f $(addprefix src/,$(MANIFEST)) $(EXTENSION_DIR)
-	cp -f $(OUT)/k2pdfopt_x86_64.nexe $(EXTENSION_DIR)
-	cp -f $(OUT)/k2pdfopt_i686.nexe $(EXTENSION_DIR)
+pack: $(EXTENSION_MANIFEST) | $(EXTENSION_DIR)
 
 clean:
 	rm -rf $(OUT)
 
 .PHONY: all arch pack clean
+
+$(EXTENSION_GEN_FILES): $(EXTENSION_DIR)/%: src/%.in | $(EXTENSION_DIR)
+	./substitute -d VERSION `cat VERSION` -o $@ -t $<
+
+$(EXTENSION_FILES): $(EXTENSION_DIR)/%: src/% | $(EXTENSION_DIR)
+	cp -f $< $@
+
+$(EXTENSION_NEXES): $(EXTENSION_DIR)/%: $(OUT)/% | $(OUT) $(EXTENSION_DIR)
+	cp -f $< $@
 
 include packages.mk
 
