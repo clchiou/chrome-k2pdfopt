@@ -13,6 +13,7 @@ function main() {
   var promiseLoadNaClModule = $.Deferred(function (defer) {
     function onLoad() {
       console.log('NaCl module was loaded');
+      config.module = $('#k2pdfopt')[0];
       defer.resolve(null);
     };
     var $l = $('#listener')[0];
@@ -120,7 +121,7 @@ function convert(fileInfo) {
   dirEntry.getFile(outputPdf, {create: true}, function (outputFileEntry) {
     $.Deferred(function (defer) {
       console.log('Execute k2pdfopt...');
-      $('#k2pdfopt')[0].postMessage(JSON.stringify({
+      postMessage(JSON.stringify({
         type: 'sys', action: 'k2pdfopt',
         input_path: inputFileEntry.fullPath,
         output_path: outputFileEntry.fullPath,
@@ -128,6 +129,9 @@ function convert(fileInfo) {
       config.defer_convert = defer;
     }).then(function () {
       console.log('k2pdfopt returned');
+      postMessage(JSON.stringify({
+        type: 'sys', action: 'quit'
+      }));
       window.open(outputFileEntry.toURL('application/pdf'), '_self');
     });
   }, function (e) {
@@ -147,7 +151,7 @@ function handleMessage(message) {
       var response = JSON.stringify({
         type: 'action', recipient: request.recipient, files: fileNames
       });
-      $('#k2pdfopt')[0].postMessage(response);
+      postMessage(response);
     }, function (e) {
       console.log('Could not fulfill read_directory request');
     });
@@ -160,9 +164,20 @@ function handleMessage(message) {
     } else {
       config.defer_convert.resolve();
     }
+  } else if (request.type === 'error') {
+    console.log('NaCl module encountered an error: ' + request.reason);
+    // TODO(clchiou): Notify user that we couldn't make it
   } else {
     console.log('Could not recognize message ' + message.data);
   }
+}
+
+function postMessage(message) {
+  if (typeof config.module === 'undefined') {
+    console.log('Could not send message as NaCl module was not loaded yet');
+    return;
+  }
+  config.module.postMessage(message);
 }
 
 function callWithFileSystem(onSuccess, onError) {

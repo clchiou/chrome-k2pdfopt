@@ -260,11 +260,11 @@ void *K2pdfoptMain::Main() {
           app_thread_ = 0;
         }
         Log("Done joining thread");
-	Message message;
-	message.put("type", "info");
-	message.put("name", "thread_completed");
-	message.put("whoami", whoami);
-	(pepper_stub_->*push_message_)(message);
+        Message message;
+        message.put("type", "info");
+        message.put("name", "thread_completed");
+        message.put("whoami", whoami);
+        (pepper_stub_->*push_message_)(message);
       } else {
         Err("Couldn't recognize sys.action '%s'", action.c_str());
       }
