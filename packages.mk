@@ -69,6 +69,7 @@ mupdf:		$(SENTINELS)/chrome-k2pdfopt/mupdf-1.1
 openjpeg:	$(SENTINELS)/chrome-k2pdfopt/openjpeg-2.0.0
 tesseract-ocr:	$(SENTINELS)/chrome-k2pdfopt/tesseract-ocr-3.02.02
 zlib:		$(SENTINELS)/chrome-k2pdfopt/zlib-1.2.7.1
+boost:		$(SENTINELS)/libraries/boost
 glibc-compat:	$(SENTINELS)/libraries/glibc-compat
 gtest:		$(SENTINELS)/libraries/gtest
 nacl-mounts:	$(SENTINELS)/libraries/nacl-mounts

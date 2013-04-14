@@ -1,0 +1,14 @@
+{
+  "name": "Convert PDF for Kindle",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "Convert PDF for Easy Kindle Reading",
+  "permissions": [
+    "contextMenus",
+    "<all_urls>"
+  ],
+  "background": {
+    "persistent": false,
+    "scripts": ["event_page.js"]
+  }
+}
