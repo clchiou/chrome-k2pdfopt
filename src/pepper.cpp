@@ -26,10 +26,6 @@
 #include <nacl-mounts/pepper/PepperDirectoryReader.h>
 #include <nacl-mounts/pepper/PepperMount.h>
 
-extern "C" {
-#include "k2pdfopt_api.h"
-}
-
 #define Err(fmt, args...) \
   fprintf(stderr, "%s:%-24s:%3d:ERR: " fmt "\n", \
       __FILE__, __func__, __LINE__, ##args)
@@ -76,6 +72,9 @@ class K2pdfoptMain : public DirectoryReader {
 
   void PushMessage(const Message& message);
 
+  static void ProgressReadPages(int num_pages);
+  static void ProgressConvert(int page_index, int num_output_pages);
+
  private:
   struct Recipient {
     void (K2pdfoptMain::*receive_)(Message& message, Recipient& recipient);
@@ -84,6 +83,9 @@ class K2pdfoptMain : public DirectoryReader {
       pp::CompletionCallback cc_;
     } read_directory_;
   };
+
+  // TODO(clchiou): Remove static self_ and use thread-local storage
+  static K2pdfoptMain *self_;
 
   static void *StaticMain(void *argblob);
   void *Main();
@@ -138,6 +140,7 @@ class PepperStub : public pp::Instance {
   void PushMessage(const Message& message);
 
  private:
+  static int num_instances_;
   K2pdfoptMain main_;
 };
 
@@ -154,6 +157,22 @@ static std::string MessageToString(const Message& message) {
   return osstream.str();
 }
 
+extern "C" {
+
+#include "k2pdfopt_api.h"
+
+void k2pdfopt_progress_read_pages(int num_pages) {
+  K2pdfoptMain::ProgressReadPages(num_pages);
+}
+
+void k2pdfopt_progress_convert(int page_index, int num_output_pages) {
+  K2pdfoptMain::ProgressConvert(page_index, num_output_pages);
+}
+
+}  // extern "C"
+
+K2pdfoptMain *K2pdfoptMain::self_ = NULL;
+
 K2pdfoptMain::K2pdfoptMain(PepperStub *pepper_stub,
                            PushMessageMethod push_message)
     : app_thread_(0), background_thread_(0),
@@ -161,6 +180,7 @@ K2pdfoptMain::K2pdfoptMain(PepperStub *pepper_stub,
       fs_(NULL), mt_runner_(NULL) {
   pthread_mutex_init(&lock_, NULL);
   pthread_cond_init(&is_not_empty_, NULL);
+  self_ = this;
 }
 
 K2pdfoptMain::~K2pdfoptMain() {
@@ -329,6 +349,23 @@ void *K2pdfoptMain::ExecuteK2pdfopt(void *argblob) {
   return NULL;
 }
 
+void K2pdfoptMain::ProgressReadPages(int num_pages) {
+  Message message;
+  message.put("type", "info");
+  message.put("name", "progress_read_pages");
+  message.put("num_pages", num_pages);
+  (self_->pepper_stub_->*self_->push_message_)(message);
+}
+
+void K2pdfoptMain::ProgressConvert(int page_index, int num_output_pages) {
+  Message message;
+  message.put("type", "info");
+  message.put("name", "progress_convert");
+  message.put("page_index", page_index);
+  message.put("num_output_pages", num_output_pages);
+  (self_->pepper_stub_->*self_->push_message_)(message);
+}
+
 bool K2pdfoptMain::MountFileSystem() {
   Log(">>> %s", __func__);
   PepperMount *mount = new PepperMount(mt_runner_, fs_, exp_size_);
@@ -404,9 +441,13 @@ void K2pdfoptMain::PushMessage(const Message& message) {
   pthread_cond_signal(&is_not_empty_);
 }
 
+int PepperStub::num_instances_ = 0;
+
 PepperStub::PepperStub(PP_Instance instance)
     : pp::Instance(instance),
       main_(this, &PepperStub::PushMessage) {
+  // TODO(clchiou): Make sure we can run with more than one instance
+  assert(++num_instances_ == 1);
 }
 
 PepperStub::~PepperStub() {

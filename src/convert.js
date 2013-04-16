@@ -164,6 +164,13 @@ function handleMessage(message) {
     } else {
       config.defer_convert.resolve();
     }
+  } else if (request.type === 'info' &&
+             request.name === 'progress_read_pages') {
+    console.log("Read " + request.num_pages + " pages");
+  } else if (request.type === 'info' &&
+             request.name === 'progress_convert') {
+    console.log("Convert page " + request.page_index + ", generated " +
+        request.num_output_pages + " pages");
   } else if (request.type === 'error') {
     console.log('NaCl module encountered an error: ' + request.reason);
     // TODO(clchiou): Notify user that we couldn't make it
