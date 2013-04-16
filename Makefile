@@ -31,7 +31,8 @@ K2PDFOPT_EXE = $(OUT)/k2pdfopt_$(NACL_ARCH).nexe
 EXTENSION_DIR = $(OUT)/extension
 EXTENSION_GEN_FILES = $(EXTENSION_DIR)/manifest.json
 EXTENSION_FILES = $(addprefix $(EXTENSION_DIR)/,\
-	convert.html convert.js event_page.js jquery.js k2pdfopt.nmf)
+	convert.html convert.js event_page.js k2pdfopt.nmf \
+	jquery.js jquery-ui.js jquery-ui.css images)
 EXTENSION_NEXES = $(addprefix $(EXTENSION_DIR)/,\
 	k2pdfopt_x86_64.nexe k2pdfopt_i686.nexe)
 EXTENSION_MANIFEST = $(EXTENSION_GEN_FILES) $(EXTENSION_FILES) \
@@ -55,7 +56,7 @@ $(EXTENSION_GEN_FILES): $(EXTENSION_DIR)/%: src/%.in | $(EXTENSION_DIR)
 	./substitute -d VERSION `cat VERSION` -o $@ -t $<
 
 $(EXTENSION_FILES): $(EXTENSION_DIR)/%: src/% | $(EXTENSION_DIR)
-	cp -f $< $@
+	if [ -h $< ]; then cp -f $< $@; else cp -rf $< $@; fi
 
 $(EXTENSION_NEXES): $(EXTENSION_DIR)/%: $(OUT)/% | $(OUT) $(EXTENSION_DIR)
 	cp -f $< $@
