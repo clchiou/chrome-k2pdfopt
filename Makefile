@@ -31,7 +31,10 @@ K2PDFOPT_EXE = $(OUT)/k2pdfopt_$(NACL_ARCH).nexe
 EXTENSION_DIR = $(OUT)/extension
 EXTENSION_GEN_FILES = $(EXTENSION_DIR)/manifest.json
 EXTENSION_FILES = $(addprefix $(EXTENSION_DIR)/,\
-	convert.html convert.js event_page.js k2pdfopt.nmf \
+	content_script.js event_page.js \
+	popup.css popup.html popup.js \
+	convert.html convert.js \
+	k2pdfopt.nmf \
 	jquery.js jquery-ui.js jquery-ui.css images)
 EXTENSION_NEXES = $(addprefix $(EXTENSION_DIR)/,\
 	k2pdfopt_x86_64.nexe k2pdfopt_i686.nexe)

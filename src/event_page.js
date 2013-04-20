@@ -3,19 +3,32 @@
 // as published by the Free Software Foundation, either version 3 of the
 // License, or (at your option) any later version.
 
-function fireConvert(fileUri) {
-  fileUri = 'fileUri=' + encodeURIComponent(fileUri);
-  chrome.tabs.create({url: 'convert.html?' + fileUri})
+function getFileUri(url) {
+  var params = url.slice(url.indexOf('?') + 1).split('&');
+  var pair;
+  for (var i = 0; i < params.length; i++) {
+    pair = params[i].split('=');
+    if (pair[0] === 'fileUri') {
+      return decodeURIComponent(pair[1]);
+    }
+  }
+  return null;
 }
 
-chrome.contextMenus.create({
-  'id': 'chrome-k2pdfopt-menu-id',
-  'title': 'Convert PDF for Kindle',
-  'contexts': ['page', 'link'],
-});
+function onMessageCallback(message, sender, sendResponse) {
+  var request = JSON.parse(message);
+  if (request.type === 'popup') {
+    chrome.pageAction.setPopup({
+      tabId: sender.tab.id,
+      popup: 'popup.html?fileUri=' + encodeURIComponent(request.fileUri),
+    });
+    chrome.pageAction.show(sender.tab.id);
+  } else if (request.type === 'convert') {
+    var fileUri = 'fileUri=' + encodeURIComponent(getFileUri(sender.tab.url));
+    chrome.tabs.create({url: 'convert.html?' + fileUri})
+  } else {
+    console.log('Could not recognize message: ' + message);
+  }
+}
 
-chrome.contextMenus.onClicked.addListener(function(info, tab) {
-  var targetUrl = info['linkUrl'] || info['frameUrl'] || info['pageUrl'] ||
-                  tab.url;
-  fireConvert(targetUrl)
-});
+chrome.extension.onMessage.addListener(onMessageCallback);

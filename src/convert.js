@@ -8,12 +8,15 @@ var config = [];
 function main() {
   console.log('Start...');
 
+  $('#progressbar').progressbar({value: false});
+
   config = parseConfig(window.location.href);
 
   var promiseLoadNaClModule = $.Deferred(function (defer) {
     function onLoad() {
       console.log('NaCl module was loaded');
       config.module = $('#k2pdfopt')[0];
+      setProgress({type: 'nacl_module_loaded'});
       defer.resolve(null);
     };
     var $l = $('#listener')[0];
@@ -56,6 +59,7 @@ function fetch(defer) {
       // TODO(clchiou): Extend to other eBook format
       if (blob.type === 'application/pdf') {
         console.log('Got HTTP response blob');
+        setProgress({type: 'file_downloaded'});
         dfd.resolve(blob);
       } else {
         console.log('Not a PDF file ' + config.fileUri);
@@ -97,6 +101,7 @@ function fetch(defer) {
     inputFileEntry.createWriter(function (fileWriter) {
       fileWriter.onwriteend = function(e) {
         console.log('Blob was written to local file');
+        setProgress({type: 'file_written'});
         defer.resolve(fileInfo);
       };
       fileWriter.onerror = function (e) {
@@ -166,11 +171,14 @@ function handleMessage(message) {
     }
   } else if (request.type === 'info' &&
              request.name === 'progress_read_pages') {
-    console.log("Read " + request.num_pages + " pages");
+    console.log('Read ' + request.num_pages + ' pages');
+    config.num_pages = request.num_pages;
+    setProgress({type: 'pages_read'});
   } else if (request.type === 'info' &&
              request.name === 'progress_convert') {
-    console.log("Convert page " + request.page_index + ", generated " +
-        request.num_output_pages + " pages");
+    console.log('Convert page ' + request.page_index + ', generated ' +
+        request.num_output_pages + ' pages');
+    setProgress({type: 'pages_converted', page_index: request.page_index});
   } else if (request.type === 'error') {
     console.log('NaCl module encountered an error: ' + request.reason);
     // TODO(clchiou): Notify user that we couldn't make it
@@ -228,7 +236,7 @@ function listDirectory(path, onSuccess, onError) {
 
 function parseConfig(url) {
   var args = [];
-  var params = url.slice(window.location.href.indexOf('?') + 1).split('&');
+  var params = url.slice(url.indexOf('?') + 1).split('&');
   var pair;
   for (var i = 0; i < params.length; i++) {
     pair = params[i].split('=');
@@ -237,6 +245,23 @@ function parseConfig(url) {
     }
   }
   return args;
+}
+
+function setProgress(progress) {
+  var progressbar = $('#progressbar');
+  var value = progressbar.progressbar('value');
+  if (progress.type === 'nacl_module_loaded') {
+    value += 5;
+  } else if (progress.type === 'file_downloaded') {
+    value += 2.5;
+  } else if (progress.type === 'file_written') {
+    value += 2.5;
+  } else if (progress.type === 'pages_read') {
+    value += 5;
+  } else if (progress.type === 'pages_converted') {
+    value = 15 + 85 * progress.page_index / config.num_pages;
+  }
+  progressbar.progressbar('value', value);
 }
 
 function getPath(url) {

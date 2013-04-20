@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2013 Che-Liang Chiou. All rights reserved.
+ * Use of this source code is governed by the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ */
+
+#main {
+  width: 230px;
+  height: 30px;
+}
+
+#convert {
+  margin: 2px;
+  position: relative;
+  padding: 4px 0;
+  float: left;
+}
+
+#config {
+  margin: 0;
+  padding: 0;
+  float: right;
+}
+
+#config div {
+  margin: 2px;
+  position: relative;
+  padding: 4px 0;
+  cursor: pointer;
+  float: left;
+}
+
+#config span.ui-icon {
+  float: left;
+  margin: 0 4px;
+}

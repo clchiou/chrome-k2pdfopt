@@ -4,11 +4,21 @@
   "manifest_version": 2,
   "description": "Convert PDF for Easy Kindle Reading.",
   "permissions": [
-    "contextMenus",
+    "tabs",
     "http://*/*", "https://*/*", "file://*", "ftp://*/*"
   ],
   "background": {
     "persistent": false,
     "scripts": ["event_page.js"]
-  }
+  },
+  "page_action": {
+    "default_title": "Convert PDF for Kindle",
+    "default_popup": "popup.html"
+  },
+  "content_scripts" : [{
+    "matches" : [ "http://*/*", "https://*/*", "file://*", "ftp://*/*" ],
+    "js" : ["content_script.js"],
+    "run_at" : "document_idle",
+    "all_frames" : false
+  }]
 }
