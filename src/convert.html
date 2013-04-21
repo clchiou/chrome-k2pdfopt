@@ -4,12 +4,19 @@
     <meta charset="utf-8">
     <title>Convert PDF for Easy Kindle Reading</title>
     <link href="jquery-ui.css" rel="stylesheet">
+    <link href="convert.css" rel="stylesheet">
     <script src="jquery.js"></script>
     <script src="jquery-ui.js"></script>
     <script src="convert.js"></script>
   </head>
   <body>
-    <div id="progressbar"></div>
-    <div id="listener"></div>
+    <div id="container">
+      <div id="progressbar"></div>
+      <div style="height: 12px;"></div>
+      <div class="ui-widget">
+        <div id="messagebar" class="ui-corner-all"></div>
+      </div>
+      <div id="listener"></div>
+    </div>
   </body>
 </html>

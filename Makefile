@@ -33,7 +33,7 @@ EXTENSION_GEN_FILES = $(EXTENSION_DIR)/manifest.json
 EXTENSION_FILES = $(addprefix $(EXTENSION_DIR)/,\
 	content_script.js event_page.js \
 	popup.css popup.html popup.js \
-	convert.html convert.js \
+	convert.css convert.html convert.js \
 	k2pdfopt.nmf \
 	jquery.js jquery-ui.js jquery-ui.css images)
 EXTENSION_NEXES = $(addprefix $(EXTENSION_DIR)/,\

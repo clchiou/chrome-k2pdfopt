@@ -11,6 +11,12 @@ function main() {
   $('#progressbar').progressbar({value: false});
 
   config = parseConfig(window.location.href);
+  if (!config.fileUri) {
+    showError('Could not find PDF URL.');
+    return;
+  }
+  showInfo('Convert ' + getBasename(config.fileUri) +
+      ' for easy Kindle reading.');
 
   var promiseLoadNaClModule = $.Deferred(function (defer) {
     function onLoad() {
@@ -38,8 +44,8 @@ function main() {
     console.log('Fetched ' + config.fileUri);
     convert(fileInfo);
   }, function() {
-    console.log('Could not fetch remote file');
-    // TODO(clchiou): Notify user that we could not fetch file
+    console.log('Could not convert for some reason.');
+    showError('Could not convert for some reason.');
   });
 }
 
@@ -47,14 +53,12 @@ function fetch(defer) {
   // TODO(clchiou): Choose file name extension from mine type
   var inputPdf = 'file.pdf';
 
-  // TODO(clchiou): Show download progress and handle HTTP error
   var promiseHttpGet = $.Deferred(function (dfd) {
     console.log('Fire HTTP GET...');
     // TODO(clchiou): Try jquery get
     var httpRequest = new XMLHttpRequest();
-    httpRequest.open('GET', config.fileUri, true);
     httpRequest.responseType = 'blob';
-    httpRequest.onload = function (e) {
+    httpRequest.addEventListener('load', function (e) {
       var blob = httpRequest.response;
       // TODO(clchiou): Extend to other eBook format
       if (blob.type === 'application/pdf') {
@@ -63,9 +67,14 @@ function fetch(defer) {
         dfd.resolve(blob);
       } else {
         console.log('Not a PDF file ' + config.fileUri);
+        showError('Could not convert non-PDF file ' + config.fileUri);
         dfd.reject();
       }
-    };
+    }, false);
+    httpRequest.addEventListener('error', function (e) {
+      showError('Could not download ' + config.fileUri);
+    }, false);
+    httpRequest.open('GET', config.fileUri, true);
     httpRequest.send();
   }).promise();
 
@@ -107,6 +116,8 @@ function fetch(defer) {
       fileWriter.onerror = function (e) {
         console.log('Could not write to ' + inputPdf + ' due to ' +
                     e.toString());
+        showError('Could not write to ' + inputPdf + ' due to ' +
+                  e.toString());
         defer.reject();
       };
       fileWriter.write(blob);
@@ -119,7 +130,6 @@ function fetch(defer) {
 
 function convert(fileInfo) {
   console.log('Convert file...');
-  // TODO(clchiou): Show convert progress
   var outputPdf = getBasename(getPath(config.fileUri));
   var dirEntry = fileInfo.dirEntry;
   var inputFileEntry = fileInfo.inputFileEntry;
@@ -137,11 +147,12 @@ function convert(fileInfo) {
       postMessage(JSON.stringify({
         type: 'sys', action: 'quit'
       }));
-      window.open(outputFileEntry.toURL('application/pdf'), '_self');
+      if (!config.hasError) {
+        window.open(outputFileEntry.toURL('application/pdf'), '_self');
+      }
     });
   }, function (e) {
     logFileSystemError(e);
-    // TODO(clchiou): Notify user that we could not convert the file
   });
 }
 
@@ -181,7 +192,7 @@ function handleMessage(message) {
     setProgress({type: 'pages_converted', page_index: request.page_index});
   } else if (request.type === 'error') {
     console.log('NaCl module encountered an error: ' + request.reason);
-    // TODO(clchiou): Notify user that we couldn't make it
+    showError(request.reason);
   } else {
     console.log('Could not recognize message ' + message.data);
   }
@@ -247,7 +258,37 @@ function parseConfig(url) {
   return args;
 }
 
+function showInfo(message) {
+  if (config.hasError) {
+    return;
+  }
+  $('#messagebar')
+    .addClass('ui-state-highlight')
+    .html('<p>' +
+        '<span id="message" class="ui-icon ui-icon-info"></span>' +
+        '<strong>Info:</strong> ' + message +
+        '</p>');
+}
+
+function showError(message) {
+  if (config.hasError) {
+    return;
+  }
+  config.hasError = true;
+  $('#progressbar').progressbar('value', false);
+  $('#messagebar')
+    .removeClass('ui-state-highlight')
+    .addClass('ui-state-error')
+    .html('<p>' +
+        '<span id="message" class="ui-icon ui-icon-alert"></span>' +
+        '<strong>Alert:</strong> ' + message +
+        '</p>');
+}
+
 function setProgress(progress) {
+  if (config.hasError) {
+    return;
+  }
   var progressbar = $('#progressbar');
   var value = progressbar.progressbar('value');
   if (progress.type === 'nacl_module_loaded') {
@@ -297,6 +338,7 @@ function logFileSystemError(e) {
       break;
   };
   console.log('File operation failed: ' + msg);
+  showError('Could not perform file system operation due to ' + msg);
 };
 
 $(document).ready(main);
