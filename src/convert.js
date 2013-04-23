@@ -23,6 +23,7 @@ function main() {
       console.log('NaCl module was loaded');
       config.module = $('#k2pdfopt')[0];
       setProgress({type: 'nacl_module_loaded'});
+      startWatchDog();
       defer.resolve(null);
     };
     var $l = $('#listener')[0];
@@ -156,6 +157,22 @@ function convert(fileInfo) {
   });
 }
 
+function startWatchDog() {
+  config.watchDogId = window.setInterval(watchDog, 2500);
+  config.pong = false;
+  postMessage(JSON.stringify({type: 'ping'}));
+}
+
+function watchDog() {
+  if (!config.pong) {
+    showError('NaCl module is not responding.');
+    clearInterval(config.watchDogId);
+    return;
+  }
+  config.pong = false;
+  postMessage(JSON.stringify({type: 'ping'}));
+}
+
 function handleMessage(message) {
   if (typeof message.data !== 'string') {
     console.log('Message is not string type');
@@ -190,6 +207,8 @@ function handleMessage(message) {
     console.log('Convert page ' + request.page_index + ', generated ' +
         request.num_output_pages + ' pages');
     setProgress({type: 'pages_converted', page_index: request.page_index});
+  } else if (request.type === 'pong') {
+    config.pong = true;
   } else if (request.type === 'error') {
     console.log('NaCl module encountered an error: ' + request.reason);
     showError(request.reason);

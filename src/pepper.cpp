@@ -288,6 +288,10 @@ void *K2pdfoptMain::Main() {
       } else {
         Err("Couldn't recognize sys.action '%s'", action.c_str());
       }
+    } else if (type == "ping") {
+      Message message;
+      message.put("type", "pong");
+      (pepper_stub_->*push_message_)(message);
     } else if (type == "action") {
       int recipient_id = message.get<int>("recipient", -1);
       if (recipient_id < 0) {
