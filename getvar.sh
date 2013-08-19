@@ -6,28 +6,43 @@
 set -o nounset
 set -o errexit
 
-source common.sh
-
 if [ -z "${1:-}" ]; then
   exit 1
 fi
 
-case "$1" in
+if [ "${NACL_GLIBC:-}" = "1" ]; then
+  nacl_libc=glibc
+else
+  nacl_libc=newlib
+fi
+
+# Because ${NACLPORTS_ROOT}/src/build_tools/nacl_env.sh parses command-line
+# arguments, we should empty arguments before (indirectly) calling nacl_env.sh
+command="$1"
+shift
+
+# XXX ${NACLPORTS_ROOT}/src/build_tools/common.sh is buggy(?) that when
+# PACKAGE_NAME is unset, it crashes instead of detecting this...
+if [ -z "${PACKAGE_NAME:-}" ]; then
+  export PACKAGE_NAME=dummy
+fi
+
+# XXX ${NACLPORTS_ROOT}/src/build_tools/common.sh emits output...
+# Just shut it up!
+source common.sh > /dev/null
+
+case "${command}" in
   SENTINELS)
     sentinels_dir=${NACLPORTS_ROOT}/src/out/sentinels
     if [ ${NACL_DEBUG} = "1" ]; then
-      echo ${sentinels_dir}/${NACL_ARCH}_debug
+      echo ${sentinels_dir}/${NACL_ARCH}_${nacl_libc}_debug
     else
-      echo ${sentinels_dir}/${NACL_ARCH}
+      echo ${sentinels_dir}/${NACL_ARCH}_${nacl_libc}
     fi
     ;;
   NACL_LIBC)
-    if [ ${NACL_GLIBC} = "1" ]; then
-      echo glibc
-    else
-      echo newlib
-    fi
+    echo ${nacl_libc}
     ;;
   *)
-    eval "echo \$$1"
+    eval "echo \$${command}"
 esac

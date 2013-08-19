@@ -47,19 +47,13 @@ DefaultPreConfigureStep() {
 
 # Override defaults of naclports common.sh
 
-DefaultTouchStep() {
-  FULL_PACKAGE="chrome-k2pdfopt/${PACKAGE_NAME}"
-  SENTFILE="${NACL_PACKAGES_OUT}/sentinels/${NACL_ARCH}/${FULL_PACKAGE}"
-  SENTDIR=$(dirname "${SENTFILE}")
-  mkdir -p "${SENTDIR}" && touch "${SENTFILE}"
-}
-
 DefaultPackageInstall() {
   DefaultPreInstallStep
   DefaultSyncSrcStep
   DefaultPreConfigureStep
   DefaultConfigureStep
   DefaultBuildStep
+  DefaultTranslateStep
+  DefaultValidateStep
   DefaultInstallStep
-  DefaultCleanUpStep
 }

@@ -15,23 +15,24 @@ BUILD_PKG = export MAKEFLAGS=""; \
 	    PKG=$*; PKG=$${PKG%-*}; cd $${PKG} && ./nacl-$${PKG}.sh
 BUILD_LIB = export MAKEFLAGS=""; \
 	    cd $(NACLPORTS_ROOT)/src/libraries/$* && ./nacl-$(notdir $*).sh
+TOUCH_SENTINELS = mkdir -p $$(dirname $@) && touch $@
 
 # TODO(clchiou): Port openjpeg
 $(SENTINELS)/chrome-k2pdfopt/openjpeg-2.0.0:
-	@touch $@
+	@$(TOUCH_SENTINELS)
 
 $(SENTINELS)/chrome-k2pdfopt/%:
 	@$(BANNER)
-	@$(BUILD_PKG) && touch $@
+	@$(BUILD_PKG)
+	@$(TOUCH_SENTINELS)
 
 $(SENTINELS)/libraries/%:
 	@$(BANNER)
-	@$(BUILD_LIB) && touch $@
+	@$(BUILD_LIB)
+	@$(TOUCH_SENTINELS)
 
 # Dependencies
 
-$(SENTINELS)/libraries/nacl-mounts: \
-	$(SENTINELS)/libraries/gtest
 $(SENTINELS)/chrome-k2pdfopt/libpng-1.6.1: \
 	$(SENTINELS)/chrome-k2pdfopt/zlib-1.2.7.1
 $(SENTINELS)/chrome-k2pdfopt/mupdf-1.1: \
@@ -71,7 +72,6 @@ tesseract-ocr:	$(SENTINELS)/chrome-k2pdfopt/tesseract-ocr-3.02.02
 zlib:		$(SENTINELS)/chrome-k2pdfopt/zlib-1.2.7.1
 boost:		$(SENTINELS)/libraries/boost
 glibc-compat:	$(SENTINELS)/libraries/glibc-compat
-gtest:		$(SENTINELS)/libraries/gtest
 nacl-mounts:	$(SENTINELS)/libraries/nacl-mounts
 
 .PHONY: freetype2 jbig2dec jpeg k2pdfopt leptonica libpng mupdf openjpeg \
