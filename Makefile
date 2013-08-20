@@ -29,15 +29,19 @@ LIBS	:= -lk2pdfopt -ltesseract -llept \
 K2PDFOPT_EXE = $(OUT)/k2pdfopt_$(NACL_ARCH).nexe
 
 EXTENSION_DIR = $(OUT)/extension
+
 EXTENSION_GEN_FILES = $(EXTENSION_DIR)/manifest.json
+
 EXTENSION_FILES = $(addprefix $(EXTENSION_DIR)/,\
 	content_script.js event_page.js \
 	popup.css popup.html popup.js \
 	convert.css convert.html convert.js \
 	k2pdfopt.nmf \
 	jquery.js jquery-ui.js jquery-ui.css images)
+
 EXTENSION_NEXES = $(addprefix $(EXTENSION_DIR)/,\
 	k2pdfopt_x86_64.nexe k2pdfopt_i686.nexe)
+
 EXTENSION_MANIFEST = $(EXTENSION_GEN_FILES) $(EXTENSION_FILES) \
 	$(EXTENSION_NEXES)
 
@@ -49,7 +53,8 @@ all:
 
 arch: $(K2PDFOPT_EXE) | k2pdfopt
 
-pack: $(EXTENSION_MANIFEST) | $(EXTENSION_DIR)
+pack: $(EXTENSION_MANIFEST) | $(EXTENSION_DIR) $(EXTENSION_DIR)/icons
+	cp icons/*.png $(EXTENSION_DIR)/icons
 
 clean-repo:
 	rm -rf $(shell $(GETVAR) REPOSITORY)
@@ -85,5 +90,5 @@ $(CXX_OBJS): $(OBJ_DIR)/%.o: src/%.cpp | $(OBJ_DIR)
 $(C_OBJS): $(OBJ_DIR)/%.o: src/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(OUT) $(OBJ_DIR) $(EXTENSION_DIR):
+$(OUT) $(OBJ_DIR) $(EXTENSION_DIR) $(EXTENSION_DIR)/icons:
 	mkdir -p $@
