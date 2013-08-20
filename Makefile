@@ -43,6 +43,7 @@ EXTENSION_MANIFEST = $(EXTENSION_GEN_FILES) $(EXTENSION_FILES) \
 
 all:
 	NACL_ARCH=x86_64 $(MAKE) arch
+	$(MAKE) clean-repo
 	NACL_ARCH=i686   $(MAKE) arch
 	$(MAKE) pack
 
@@ -50,10 +51,14 @@ arch: $(K2PDFOPT_EXE) | k2pdfopt
 
 pack: $(EXTENSION_MANIFEST) | $(EXTENSION_DIR)
 
+clean-repo:
+	rm -rf $(shell $(GETVAR) REPOSITORY)
+	rm -rf $(shell $(GETVAR) NACL_PACKAGES_STAMPDIR)
+
 clean:
 	rm -rf $(OUT)
 
-.PHONY: all arch pack clean
+.PHONY: all arch pack clean-repo clean
 
 $(EXTENSION_GEN_FILES): $(EXTENSION_DIR)/%: src/%.in | $(EXTENSION_DIR)
 	./substitute -d VERSION `cat VERSION` -o $@ -t $<
