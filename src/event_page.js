@@ -16,19 +16,18 @@ function getFileUri(url) {
 }
 
 function onMessageCallback(message, sender, sendResponse) {
-  var request = JSON.parse(message);
-  if (request.type === 'popup') {
+  if (message.type === 'popup') {
     chrome.pageAction.setPopup({
       tabId: sender.tab.id,
-      popup: 'popup.html?fileUri=' + encodeURIComponent(request.fileUri),
+      popup: 'popup.html?fileUri=' + encodeURIComponent(message.fileUri),
     });
     chrome.pageAction.show(sender.tab.id);
-  } else if (request.type === 'convert') {
-    var fileUri = 'fileUri=' + encodeURIComponent(getFileUri(sender.tab.url));
+  } else if (message.type === 'convert') {
+    var fileUri = 'fileUri=' + encodeURIComponent(getFileUri(message.url));
     chrome.tabs.create({url: 'convert.html?' + fileUri})
   } else {
     console.log('Could not recognize message: ' + message);
   }
 }
 
-chrome.extension.onMessage.addListener(onMessageCallback);
+chrome.runtime.onMessage.addListener(onMessageCallback);

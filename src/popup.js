@@ -5,9 +5,10 @@
 
 function main() {
   $('#convert a').click(function () {
-    chrome.extension.sendMessage(JSON.stringify({
+    chrome.runtime.sendMessage({
       type: 'convert',
-    }));
+      url: document.location.href
+    });
   });
   $('#config div').hover(function () {
     $(this).addClass('ui-state-hover');

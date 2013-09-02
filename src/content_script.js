@@ -6,7 +6,5 @@
 var plugin = document.evaluate('//embed[@type="application/pdf"]',
     document, null, XPathResult.ANY_TYPE, null).iterateNext();
 if (plugin) {
-  chrome.extension.sendMessage(JSON.stringify({
-    type: 'popup', fileUri: plugin.src,
-  }));
+  chrome.runtime.sendMessage({type: 'popup', fileUri: plugin.src});
 }
