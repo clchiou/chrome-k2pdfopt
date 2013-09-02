@@ -55,6 +55,7 @@ arch: $(K2PDFOPT_EXE) | k2pdfopt
 
 pack: $(EXTENSION_MANIFEST) | $(EXTENSION_DIR) $(EXTENSION_DIR)/icons
 	cp icons/*.png $(EXTENSION_DIR)/icons
+	(cd $(OUT) ; zip -r chrome-k2pdfopt.zip extension)
 
 clean-repo:
 	rm -rf $(shell $(GETVAR) REPOSITORY)
