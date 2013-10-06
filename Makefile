@@ -36,8 +36,9 @@ EXTENSION_FILES = $(addprefix $(EXTENSION_DIR)/,\
 	content_script.js event_page.js \
 	popup.css popup.html popup.js \
 	convert.css convert.html convert.js \
+	file-fetcher.js nacl-module.js util.js status.js \
 	k2pdfopt.nmf \
-	jquery.js jquery-ui.js jquery-ui.css images)
+	jquery.js jquery.min.map jquery-ui.js jquery-ui.css images)
 
 EXTENSION_NEXES = $(addprefix $(EXTENSION_DIR)/,\
 	k2pdfopt_x86_64.nexe k2pdfopt_i686.nexe)
