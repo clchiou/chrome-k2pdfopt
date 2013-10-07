@@ -24,7 +24,11 @@ function onMessageCallback(message, sender, sendResponse) {
     chrome.pageAction.show(sender.tab.id);
   } else if (message.type === 'convert') {
     var fileUri = 'fileUri=' + encodeURIComponent(getFileUri(message.url));
-    chrome.tabs.create({url: 'convert.html?' + fileUri})
+    var url = 'convert.html?' + fileUri;
+    if (message.model) {
+      url += '&model=' + encodeURIComponent(message.model);
+    }
+    chrome.tabs.create({url: url});
   } else {
     console.log('Could not recognize message: ' + message);
   }

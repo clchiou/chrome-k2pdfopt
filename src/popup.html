@@ -5,20 +5,30 @@
     <title>Convert PDF for Kindle</title>
     <link href="jquery-ui.css" rel="stylesheet">
     <link href="popup.css" rel="stylesheet">
-    <script src="jquery.js"></script>
-    <script src="jquery-ui.js"></script>
-    <script src="popup.js"></script>
   </head>
   <body>
     <div id="main">
       <div id="convert" class="ui-widget">
         <a href="#">Convert PDF for Kindle</a>
       </div>
-      <div id="config" class="ui-widget ui-helper-clearfix">
+      <div id="config-icon" class="ui-widget ui-helper-clearfix">
         <div class="ui-state-default ui-corner-all">
           <span class="ui-icon ui-icon-wrench"></span>
         </div>
       </div>
+      <div id="config">
+        <form action="#">
+          <select id="config-model" name="model">
+            <option value="kpw" selected>Kindle Paperwhite
+            <option value="k2">Kindle 2
+            <option value="dx">Kindle DX
+            <option value="nookst">Nook Simple Touch
+          </select>
+        </form>
+      </div>
     </div>
+    <script src="jquery.js"></script>
+    <script src="jquery-ui.js"></script>
+    <script src="popup.js"></script>
   </body>
 </html>

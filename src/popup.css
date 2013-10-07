@@ -6,7 +6,7 @@
  */
 
 #main {
-  width: 230px;
+  width: 250px;
   height: 30px;
 }
 
@@ -17,13 +17,13 @@
   float: left;
 }
 
-#config {
+#config-icon {
   margin: 0;
   padding: 0;
   float: right;
 }
 
-#config div {
+#config-icon div {
   margin: 2px;
   position: relative;
   padding: 4px 0;
@@ -31,7 +31,12 @@
   float: left;
 }
 
-#config span.ui-icon {
+#config-icon span.ui-icon {
   float: left;
   margin: 0 4px;
+}
+
+#config {
+  display: none;
+  height: 65px;
 }

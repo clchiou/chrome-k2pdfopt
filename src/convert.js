@@ -11,6 +11,8 @@ function Converter() {
 
   var fileUri = null;
 
+  var model = null;
+
   var fileEntry = null;
 
   var fetcher = null;
@@ -21,11 +23,14 @@ function Converter() {
   function onReady() {
     console.log('Start: Convert PDF file');
 
-    fileUri = getFileUri(window.location.href);
+    fileUri = getComponent(window.location.href, 'fileUri');
     if (!fileUri) {
       STATUS.showError('Could not find PDF URL.');
       return;
     }
+
+    model = getComponent(window.location.href, 'model');
+    console.log('Converter: model=' + model);
 
     var base = getBaseName(fileUri);
     STATUS.showInfo('Convert ' + base + ' for easy Kindle reading.');
@@ -52,7 +57,7 @@ function Converter() {
 
   function doConvert(deferred_arg) {
     deferred = deferred_arg;
-    module.start(fetcher.getFileEntry().fullPath, fileEntry.fullPath);
+    module.start(fetcher.getFileEntry().fullPath, fileEntry.fullPath, model);
   }
 
   function doneConvert() {

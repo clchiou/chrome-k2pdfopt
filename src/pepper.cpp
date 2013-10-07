@@ -94,11 +94,14 @@ class K2pdfoptMain : public DirectoryReader {
 
   struct ExecuteK2pdfoptArgBlob {
     ExecuteK2pdfoptArgBlob(K2pdfoptMain *self,
-        const std::string& input_path, const std::string& output_path)
-        : self_(self), input_path_(input_path), output_path_(output_path) {}
+        const std::string& input_path, const std::string& output_path,
+        const std::string& model)
+        : self_(self), input_path_(input_path), output_path_(output_path),
+          model_(model) {}
     K2pdfoptMain *self_;
     std::string input_path_;
     std::string output_path_;
+    std::string model_;
   };
   static void *ExecuteK2pdfopt(void *argblob);
 
@@ -258,6 +261,7 @@ void *K2pdfoptMain::Main() {
         Log("Execute k2pdfopt...");
         std::string input_path = message.get<std::string>("input_path", "");
         std::string output_path = message.get<std::string>("output_path", "");
+        std::string model = message.get<std::string>("model", "");
         if (input_path == "" || output_path == "") {
           Err("Path(s) are empty: input_path='%s' output_path='%s'",
               input_path.c_str(), output_path.c_str());
@@ -266,7 +270,7 @@ void *K2pdfoptMain::Main() {
         input_path = MOUNT_ROOT + input_path;
         output_path = MOUNT_ROOT + output_path;
         ExecuteK2pdfoptArgBlob *blob =
-          new ExecuteK2pdfoptArgBlob(this, input_path, output_path);
+          new ExecuteK2pdfoptArgBlob(this, input_path, output_path, model);
         int err = pthread_create(&app_thread_, NULL, ExecuteK2pdfopt, blob);
         if (err) {
           Err("Couldn't create app thread: %d", err);
@@ -334,13 +338,23 @@ void *K2pdfoptMain::ExecuteK2pdfopt(void *argblob) {
   Log(">>> %s", __func__);
   ExecuteK2pdfoptArgBlob *blob =
     reinterpret_cast<ExecuteK2pdfoptArgBlob*>(argblob);
-  const char *argv[] = {
-    "k2pdfopt",
-    "-ui-", "-a-", "-x",
-    "-o", blob->output_path_.c_str(),
-    blob->input_path_.c_str(),
-  };
-  int argc = sizeof(argv) / sizeof(argv[0]);
+  const char *argv[9];
+  int argc;
+  argv[0] = "k2pdfopt";
+  argv[1] = "-ui-";
+  argv[2] = "-a-";
+  argv[3] = "-x";
+  argv[4] = "-o";
+  argv[5] = blob->output_path_.c_str();
+  if (blob->model_ != "") {
+    argv[6] = "-dev";
+    argv[7] = blob->model_.c_str();
+    argv[8] = blob->input_path_.c_str();
+    argc = 9;
+  } else {
+    argv[6] = blob->input_path_.c_str();
+    argc = 7;
+  }
   int ret = k2pdfopt_main(argc, argv);
   Log("k2pdfopt returned %d", ret);
   Message message;

@@ -40,12 +40,12 @@ function showFsError(error) {
 }
 
 
-function getFileUri(url) {
+function getComponent(url, name) {
   var params = url.slice(url.indexOf('?') + 1).split('&');
   var pair;
   for (var i = 0; i < params.length; i++) {
     pair = params[i].split('=');
-    if (pair[0] === 'fileUri') {
+    if (pair[0] === name) {
       return decodeURIComponent(pair[1]);
     }
   }

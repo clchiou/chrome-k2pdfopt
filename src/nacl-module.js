@@ -30,11 +30,17 @@ function NaclModule() {
   }
   self.load = load;
 
-  function start(inputPath, outputPath) {
-    postMessage(JSON.stringify({
-      type: 'sys', action: 'k2pdfopt',
-      input_path: inputPath, output_path: outputPath
-    }));
+  function start(inputPath, outputPath, model) {
+    var message = {
+      type: 'sys',
+      action: 'k2pdfopt',
+      input_path: inputPath,
+      output_path: outputPath
+    };
+    if (model) {
+      message.model = model;
+    }
+    postMessage(JSON.stringify(message));
     startWatchDog();
   }
   self.start = start;
