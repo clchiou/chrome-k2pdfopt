@@ -5,108 +5,98 @@
 
 
 function Converter() {
-  this.fileUri = null;
-  this.module = null;
-  this.fetcher = null;
-  this.dirLister = null;
-  this.deferred = null;
-  this.fileEntry = null;
-}
+  var self = this;
 
+  var deferred = null;
 
-Converter.prototype.onReady = function() {
-  console.log('Start...');
+  var fileUri = null;
 
-  this.fileUri = getFileUri(window.location.href);
-  if (!this.fileUri) {
-    STATUS.showError('Could not find PDF URL.');
-    return;
-  }
-  STATUS.showInfo('Convert ' + getBasename(this.fileUri) +
-      ' for easy Kindle reading.');
+  var fileEntry = null;
 
-  this.module = new NaclModule();
-  this.fetcher = new FileFetcher(this.fileUri);
-  this.dirLister = new DirLister(this.module);
+  var fetcher = null;
 
-  this.module.register(this.onRequest.bind(this));
-  this.module.register(this.dirLister.onRequest.bind(this.dirLister));
-  this.module.register(STATUS.onRequest.bind(STATUS));
+  var module = null;
+  self.getModule = function() { return module; }
 
-  $.when(this.module.load(), this.fetcher.fetch()).then(
-      this._onResolve.bind(this), this._onReject.bind(this));
-}
+  function onReady() {
+    console.log('Start: Convert PDF file');
 
-
-Converter.prototype._onResolve = function() {
-  console.log('Convert file ' + this.fileUri);
-  this.module.startWatchDog();
-
-  var outputPdf = getBasename(getPath(this.fileUri));
-  this.fetcher.dirEntry.getFile(outputPdf, {create: true},
-      this._onGetFile.bind(this), showFsError.bind(this));
-}
-
-
-Converter.prototype._onGetFile = function(fileEntry) {
-  this.fileEntry = fileEntry;
-  $.Deferred(this._doK2pdfopt.bind(this)).then(this._doneK2pdfopt.bind(this));
-}
-
-
-Converter.prototype._doK2pdfopt = function(deferred) {
-  console.log('Start k2pdfopt...');
-  this.deferred = deferred;
-  this.module.postMessage(JSON.stringify({
-    type: 'sys',
-    action: 'k2pdfopt',
-    input_path: this.fetcher.fileEntry.fullPath,
-    output_path: this.fileEntry.fullPath
-  }));
-}
-
-
-Converter.prototype._doneK2pdfopt = function() {
-  console.log('Done k2pdfopt');
-  this.module.postMessage(JSON.stringify({
-    type: 'sys',
-    action: 'quit'
-  }));
-  if (!STATUS.hasError) {
-    window.open(this.fileEntry.toURL('application/pdf'), '_self');
-  }
-}
-
-
-Converter.prototype._onReject= function() {
-  console.log('Could not convert for some reason.');
-  STATUS.showError('Could not convert for some reason.');
-}
-
-
-Converter.prototype.onRequest = function(request) {
-  if (request.type   === 'info' &&
-      request.name   === 'thread_completed' &&
-      request.whoami === 'execute_k2pdfopt') {
-    if (!this.deferred) {
-      console.log('No promise to fulfill for convert');
-      // TODO(clchiou): Show whatever that is converted?
-    } else {
-      this.deferred.resolve();
+    fileUri = getFileUri(window.location.href);
+    if (!fileUri) {
+      STATUS.showError('Could not find PDF URL.');
+      return;
     }
-    return true;
+
+    var base = getBaseName(fileUri);
+    STATUS.showInfo('Convert ' + base + ' for easy Kindle reading.');
+
+    module = new NaclModule();
+    fetcher = new FileFetcher(fileUri);
+
+    module.register(onRequest);
+    module.register(STATUS.onRequest);
+
+    $.when(module.load(), fetcher.fetch()).then(onResolve, onReject);
+  }
+  self.onReady = onReady;
+
+  function onResolve() {
+    fetcher.getDirEntry().getFile(getBaseName(getPath(fileUri)), {create: true},
+        onGetFile, showFsError);
   }
 
-  return false;
+  function onGetFile(fileEntry_arg) {
+    fileEntry = fileEntry_arg;
+    $.Deferred(doConvert).then(doneConvert);
+  }
+
+  function doConvert(deferred_arg) {
+    deferred = deferred_arg;
+    module.start(fetcher.getFileEntry().fullPath, fileEntry.fullPath);
+  }
+
+  function doneConvert() {
+    module.stop();
+    if (!STATUS.getHasError()) {
+      window.open(fileEntry.toURL('application/pdf'), '_self');
+      console.log('Done : Convert PDF file');
+    }
+  }
+
+  function onReject() {
+    console.log('Converter: Could not convert for some reason.');
+    STATUS.showError('Could not convert for some reason.');
+  }
+
+  function onRequest(request) {
+    if (request.type   === 'info' &&
+        request.name   === 'thread_completed' &&
+        request.whoami === 'execute_k2pdfopt') {
+      if (!deferred) {
+        console.log('Converter: No promise to fulfill');
+        // TODO(clchiou): Show whatever that is converted?
+      } else {
+        deferred.resolve();
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  return self;
 }
-
-
-CONVERTER = new Converter();
 
 
 function main() {
   STATUS.onReady();
-  CONVERTER.onReady();
+
+  var converter = new Converter();
+  converter.onReady();
+
+  var module = converter.getModule();
+  var dirLister = new DirLister(module);
+  module.register(dirLister.onRequest);
 }
 
 

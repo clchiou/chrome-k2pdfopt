@@ -5,87 +5,96 @@
 
 
 function Status() {
-  this.hasError = false;
-  this.numPages = null;
-}
+  var self = this;
 
+  var hasError = false;
+  self.getHasError = function() { return hasError; }
 
-Status.prototype.onReady = function() {
-  $('#progressbar').progressbar({value: false});
-}
+  var numPages = null;
 
-
-Status.prototype.onRequest = function(request) {
-  if (request.type === 'info' &&
-      request.name === 'progress_read_pages') {
-    console.log('Read ' + request.num_pages + ' pages');
-    this.numPages = request.num_pages;
-    this.setProgress({type: 'pages_read'});
-    return true;
+  function onReady() {
+    $('#progressbar').progressbar({value: false});
   }
+  self.onReady = onReady;
 
-  if (request.type === 'info' &&
-      request.name === 'progress_convert') {
-    console.log('Convert page ' + request.page_index + ', generated ' +
-        request.num_output_pages + ' pages');
-    this.setProgress({
-      type: 'pages_converted',
-      page_index: request.page_index
-    });
-    return true;
+  function onRequest(request) {
+    if (request.type === 'info' &&
+        request.name === 'progress_read_pages') {
+      numPages = request.num_pages;
+      console.log('Status: Read pages: numPages=' + numPages);
+      setProgress({type: 'pages_read'});
+      return true;
+    }
+
+    if (request.type === 'info' &&
+        request.name === 'progress_convert') {
+      console.log('Status: Convert pages: pageIndex=' + request.page_index +
+          ' numOutputPages=' + request.num_output_pages);
+      setProgress({
+        type: 'pages_converted',
+        page_index: request.page_index
+      });
+      return true;
+    }
+
+    return false;
   }
+  self.onRequest = onRequest;
 
-  return false;
-}
-
-
-Status.prototype.showInfo = function(message) {
-  if (this.hasError) {
-    return;
+  function showInfo(message) {
+    console.log('Status: info=' + message);
+    if (hasError) {
+      return;
+    }
+    $('#messagebar')
+      .addClass('ui-state-highlight')
+      .html('<p>' +
+          '<span id="message" class="ui-icon ui-icon-info"></span>' +
+          '<strong>Info:</strong> ' + message +
+          '</p>');
   }
-  $('#messagebar')
-    .addClass('ui-state-highlight')
-    .html('<p>' +
-        '<span id="message" class="ui-icon ui-icon-info"></span>' +
-        '<strong>Info:</strong> ' + message +
-        '</p>');
-}
+  self.showInfo = showInfo;
 
-
-Status.prototype.showError = function(message) {
-  if (this.hasError) {
-    return;
+  function showError(message) {
+    console.log('Status: error=' + message);
+    if (hasError) {
+      return;
+    }
+    hasError = true;
+    $('#progressbar').progressbar('value', false);
+    $('#messagebar')
+      .removeClass('ui-state-highlight')
+      .addClass('ui-state-error')
+      .html('<p>' +
+          '<span id="message" class="ui-icon ui-icon-alert"></span>' +
+          '<strong>Alert:</strong> ' + message +
+          '</p>');
   }
-  this.hasError = true;
-  $('#progressbar').progressbar('value', false);
-  $('#messagebar')
-    .removeClass('ui-state-highlight')
-    .addClass('ui-state-error')
-    .html('<p>' +
-        '<span id="message" class="ui-icon ui-icon-alert"></span>' +
-        '<strong>Alert:</strong> ' + message +
-        '</p>');
-}
+  self.showError = showError;
 
+  function setProgress(progress) {
+    console.log('Status: progress=' + JSON.stringify(progress));
+    if (hasError) {
+      return;
+    }
+    var progressbar = $('#progressbar');
+    var value = progressbar.progressbar('value');
+    if (progress.type === 'nacl_module_loaded') {
+      value += 5;
+    } else if (progress.type === 'file_downloaded') {
+      value += 2.5;
+    } else if (progress.type === 'file_written') {
+      value += 2.5;
+    } else if (progress.type === 'pages_read') {
+      value += 5;
+    } else if (progress.type === 'pages_converted') {
+      value = 15 + 85 * progress.page_index / numPages;
+    }
+    progressbar.progressbar('value', value);
+  }
+  self.setProgress = setProgress;
 
-Status.prototype.setProgress = function(progress) {
-  if (this.hasError) {
-    return;
-  }
-  var progressbar = $('#progressbar');
-  var value = progressbar.progressbar('value');
-  if (progress.type === 'nacl_module_loaded') {
-    value += 5;
-  } else if (progress.type === 'file_downloaded') {
-    value += 2.5;
-  } else if (progress.type === 'file_written') {
-    value += 2.5;
-  } else if (progress.type === 'pages_read') {
-    value += 5;
-  } else if (progress.type === 'pages_converted') {
-    value = 15 + 85 * progress.page_index / this.numPages;
-  }
-  progressbar.progressbar('value', value);
+  return self;
 }
 
 

@@ -36,7 +36,11 @@ EXTENSION_FILES = $(addprefix $(EXTENSION_DIR)/,\
 	content_script.js event_page.js \
 	popup.css popup.html popup.js \
 	convert.css convert.html convert.js \
-	file-fetcher.js nacl-module.js util.js status.js \
+	file-fetcher.js file-toucher.js http-getter.js \
+	nacl-module.js \
+	dir-lister.js \
+	util.js \
+	status.js \
 	k2pdfopt.nmf \
 	jquery.js jquery.min.map jquery-ui.js jquery-ui.css images)
 

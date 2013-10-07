@@ -4,100 +4,127 @@
 // License, or (at your option) any later version.
 
 
+var WATCH_DOG_TIMEOUT = 2500;
+
+
 function NaclModule() {
-  this.module = null;
-  this.callbacks = [];
-  this.watchDogId = null;
-  this.pong = null;
-  this.deferred = null;
-}
+  var self = this;
 
+  var deferred = null;
 
-NaclModule.prototype.register = function(callback) {
-  this.callbacks.push(callback);
-}
+  var module = null;
 
+  var callbacks = [];
 
-NaclModule.prototype.load = function() {
-  return $.Deferred(this._dolLoad.bind(this));
-}
+  var watchDogId = null;
 
+  var pong = null;
 
-NaclModule.prototype._dolLoad = function(deferred) {
-  console.log('Load NaCl module...');
-  this.deferred = deferred;
-  var listener = $('#listener')[0];
-  listener.addEventListener('load', this._onLoad.bind(this), true);
-  listener.addEventListener('message', this.handleMessage.bind(this), true);
-  $('<embed/>', {attr: {
-    name: 'nacl_module',
-    id: 'k2pdfopt',
-    width: 0,
-    height: 0,
-    src: 'k2pdfopt.nmf',
-    type: 'application/x-nacl'
-  }}).appendTo(listener);
-}
-
-
-NaclModule.prototype._onLoad = function() {
-  console.log('Load NaCl module successfully');
-  this.module = $('#k2pdfopt')[0];
-  STATUS.setProgress({type: 'nacl_module_loaded'});
-  this.deferred.resolve();
-}
-
-
-NaclModule.prototype.startWatchDog = function() {
-  this.watchDogId = window.setInterval(this._onWatchDog.bind(this), 2500);
-  this.pong = false;
-  this.postMessage(JSON.stringify({type: 'ping'}));
-}
-
-
-NaclModule.prototype._onWatchDog = function() {
-  if (!this.pong) {
-    STATUS.showError('NaCl module is not responding.');
-    clearInterval(this.watchDogId);
-    return;
+  function register(callback) {
+    callbacks.push(callback);
   }
-  this.pong = false;
-  this.postMessage(JSON.stringify({type: 'ping'}));
-}
+  self.register = register;
 
-
-NaclModule.prototype.handleMessage = function(message) {
-  if (typeof message.data !== 'string') {
-    console.log('Message is not string type');
-    return;
+  function load() {
+    return $.Deferred(dolLoad);
   }
-  console.log('Receive message ' + message.data);
-  var request = JSON.parse(message.data);
+  self.load = load;
 
-  if (request.type === 'pong') {
-    this.pong = true;
-    return;
+  function start(inputPath, outputPath) {
+    postMessage(JSON.stringify({
+      type: 'sys', action: 'k2pdfopt',
+      input_path: inputPath, output_path: outputPath
+    }));
+    startWatchDog();
   }
+  self.start = start;
 
-  if (request.type === 'error') {
-    console.log('NaCl module encountered an error: ' + request.reason);
-    this.showError(request.reason);
-    return;
+  function stop() {
+    stopWatchDog();
+    postMessage(JSON.stringify({type: 'sys', action: 'quit'}));
   }
+  self.stop = stop;
 
-  for (var i = 0; i < this.callbacks.length; i++) {
-    if (this.callbacks[i](request))
+  function postMessage(message) {
+    console.log('NaCl: module << message=' + message);
+    if (!module) {
+      console.log('NaCl: Module is not loaded yet');
       return;
+    }
+    module.postMessage(message);
+  }
+  self.postMessage = postMessage;
+
+  function dolLoad(deferred_arg) {
+    console.log('Start: Load NaCl module');
+    deferred = deferred_arg;
+
+    var listener = $('#listener')[0];
+    listener.addEventListener('load', onLoad, true);
+    listener.addEventListener('message', handleMessage, true);
+    $('<embed/>', {attr: {
+      name: 'nacl_module',
+      id: 'k2pdfopt',
+      width: 0,
+      height: 0,
+      src: 'k2pdfopt.nmf',
+      type: 'application/x-nacl'
+    }}).appendTo(listener);
   }
 
-  console.log('Could not recognize message ' + message.data);
-}
-
-
-NaclModule.prototype.postMessage = function(message) {
-  if (!this.module) {
-    console.log('Could not send message as NaCl module was not loaded yet');
-    return;
+  function onLoad() {
+    module = $('#k2pdfopt')[0];
+    STATUS.setProgress({type: 'nacl_module_loaded'});
+    deferred.resolve();
+    console.log('Done : Load NaCl module');
   }
-  this.module.postMessage(message);
+
+  function startWatchDog() {
+    watchDogId = window.setInterval(onWatchDog, WATCH_DOG_TIMEOUT);
+    pong = false;
+    postMessage(JSON.stringify({type: 'ping'}));
+  }
+
+  function stopWatchDog() {
+    clearInterval(watchDogId);
+  }
+
+  function onWatchDog() {
+    if (!pong) {
+      STATUS.showError('NaCl module is not responding.');
+      clearInterval(watchDogId);
+      return;
+    }
+    pong = false;
+    postMessage(JSON.stringify({type: 'ping'}));
+  }
+
+  function handleMessage(message) {
+    if (typeof message.data !== 'string') {
+      console.log('NaCl: Message is not string typed');
+      return;
+    }
+    console.log('NaCl: module >> message=' + message.data.replace(/\n/g, ''));
+    var request = JSON.parse(message.data);
+
+    if (request.type === 'pong') {
+      pong = true;
+      return;
+    }
+
+    if (request.type === 'error') {
+      console.log('NaCl: error=' + request.reason);
+      showError(request.reason);
+      return;
+    }
+
+    for (var i = 0; i < callbacks.length; i++) {
+      if (callbacks[i](request))
+        return;
+    }
+
+    console.log('NaCl: Could not recognize message');
+  }
+
+  return self;
 }

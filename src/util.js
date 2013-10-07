@@ -60,78 +60,11 @@ function getPath(url) {
 }
 
 
-function getBasename(path) {
+function getBaseName(path) {
   return path.split('/').reverse()[0];
 }
 
 
 function toArray(list) {
   return Array.prototype.slice.call(list || [], 0);
-}
-
-
-// TODO(clchiou): Remove this class and use NaCl File API.
-function DirLister(module) {
-  this.module = module;
-  this.request = null;
-  this.entries = null;
-  this.dirReader = null;
-}
-
-
-DirLister.prototype.onRequest = function(request) {
-  if (request.type === 'action' &&
-      request.action === 'read_directory') {
-    this.request = request;
-    this.entries = [];
-    callWithFileSystem(
-        this._onFileSystem.bind(this), this._onError.bind(this));
-    return true;
-  }
-
-  return false;
-}
-
-
-DirLister.prototype._onFileSystem = function(fileSystem) {
-  fileSystem.root.getDirectory(this.request.path, {create: false},
-      this._onDirEntry.bind(this), this._onError.bind(this));
-}
-
-
-DirLister.prototype._onDirEntry = function(dirEntry) {
-  this.dirReader = dirEntry.createReader();
-  this._readDir();
-}
-
-
-DirLister.prototype._readDir = function() {
-  this.dirReader.readEntries(
-      this._onReadEntries.bind(this), this._onError.bind(this));
-}
-
-
-DirLister.prototype._onReadEntries = function(entries) {
-  if (!results.length) {
-    var fileNames = [];
-    this.entries.sort().forEach(function (entry, i) {
-      fileNames.push(entry.name);
-    });
-    var response = JSON.stringify({
-      type: 'action',
-      recipient: this.request.recipient,
-      files: fileNames
-    });
-    this.module.postMessage(response);
-    return;
-  }
-
-  this.entries = this.entries.concat(toArray(results));
-  this.readDir();
-}
-
-
-DirLister.prototype._onError = function(error) {
-  console.log('Could not fulfill read_directory request');
-  showFsError(error);
 }
