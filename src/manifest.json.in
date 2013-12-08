@@ -4,7 +4,7 @@
   "manifest_version": 2,
   "description": "Convert PDF for Easy Kindle Reading.",
   "permissions": [
-    "http://*/*", "https://*/*", "ftp://*/*"
+    "<all_urls>"
   ],
   "background": {
     "persistent": false,

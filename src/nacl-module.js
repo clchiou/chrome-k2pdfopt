@@ -26,7 +26,7 @@ function NaclModule() {
   self.register = register;
 
   function load() {
-    return $.Deferred(dolLoad);
+    return $.Deferred(doLoad);
   }
   self.load = load;
 
@@ -61,7 +61,7 @@ function NaclModule() {
   }
   self.postMessage = postMessage;
 
-  function dolLoad(deferred_arg) {
+  function doLoad(deferred_arg) {
     console.log('Start: Load NaCl module');
     deferred = deferred_arg;
 
