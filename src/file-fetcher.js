@@ -26,7 +26,7 @@ function FileFetcher(fileUri) {
 
   function doFetch(deferred_arg) {
     deferred = deferred_arg;
-    getter = new HttpGetter(fileUri);
+    getter = new HttpRequest(fileUri, 'application/pdf');
     toucher = new FileToucher(fileName);
     $.when(getter.get(), toucher.touch()).then(
         doWriteLocalFile, deferred.reject);

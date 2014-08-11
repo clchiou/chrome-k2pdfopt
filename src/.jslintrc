@@ -1,0 +1,6 @@
+{
+  "nomen": true,
+  "predef": ["chrome",
+             "jQuery",
+             "Log", "Progress"]
+}
