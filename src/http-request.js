@@ -26,6 +26,7 @@ var HttpRequest = (function ($, Progress, Log) {
   };
 
   HttpRequest.prototype.get_ = function (deferred) {
+    Progress.to({checkpoint: 'download-file-begin'});
     // TODO(clchiou): Try jquery get.
     this.deferred_ = deferred;
     this.request_ = new XMLHttpRequest();
@@ -34,7 +35,6 @@ var HttpRequest = (function ($, Progress, Log) {
     this.request_.addEventListener('error', this.onError_.bind(this), false);
     this.request_.open('GET', this.url, true);
     this.request_.send();
-    Progress.to({checkpoint: 'download-file-begin'});
   };
 
   HttpRequest.prototype.onLoad_ = function () {

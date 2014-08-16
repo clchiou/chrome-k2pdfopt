@@ -2,5 +2,5 @@
   "nomen": true,
   "predef": ["chrome",
              "jQuery",
-             "Log", "Progress"]
+             "FileUtil", "HttpRequest", "Log", "Progress"]
 }
